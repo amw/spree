@@ -3,6 +3,8 @@ class Creditcard < ActiveRecord::Base
 
   before_save :set_last_digits
 
+  attr_accessor :number, :verification_value
+
   validates :month, :year, :numericality => { :only_integer => true }
   validates :number, :presence => true, :unless => :has_payment_profile?, :on => :create
   validates :verification_value, :presence => true, :unless => :has_payment_profile?, :on => :create
@@ -62,6 +64,8 @@ class Creditcard < ActiveRecord::Base
   def authorize(amount, payment)
     # ActiveMerchant is configured to use cents so we need to multiply order total by 100
     response = payment_gateway.authorize((amount * 100).round, self, gateway_options(payment))
+    record_log payment, response
+
     if response.success?
       payment.response_code = response.authorization
       payment.avs_response = response.avs_result['code']
@@ -77,6 +81,8 @@ class Creditcard < ActiveRecord::Base
   def purchase(amount, payment)
     #combined Authorize and Capture that gets processed by the ActiveMerchant gateway as one single transaction.
     response = payment_gateway.purchase((amount * 100).round, self, gateway_options(payment))
+    record_log payment, response
+
     if response.success?
       payment.response_code = response.authorization
       payment.avs_response = response.avs_result['code']
@@ -99,6 +105,9 @@ class Creditcard < ActiveRecord::Base
       # Standard ActiveMerchant capture usage
       response = payment_gateway.capture((payment.amount * 100).round, payment.response_code, minimal_gateway_options(payment))
     end
+
+    record_log payment, response
+
     if response.success?
       payment.response_code = response.authorization
       payment.complete
@@ -112,6 +121,8 @@ class Creditcard < ActiveRecord::Base
 
   def void(payment)
     response = payment_gateway.void(payment.response_code, self, minimal_gateway_options(payment))
+    record_log payment, response
+
     if response.success?
       payment.response_code = response.authorization
       payment.void
@@ -122,20 +133,32 @@ class Creditcard < ActiveRecord::Base
     gateway_error I18n.t(:unable_to_connect_to_gateway)
   end
 
-  def credit(payment, amount)
+  def credit(payment)
+    amount = payment.credit_allowed >= payment.order.outstanding_balance.abs ? payment.order.outstanding_balance : payment.credit_allowed
+
     if payment_gateway.payment_profiles_supported?
       response = payment_gateway.credit((amount * 100).round, self, payment.response_code, minimal_gateway_options(payment))
     else
       response = payment_gateway.credit((amount * 100).round, payment.response_code, minimal_gateway_options(payment))
     end
+
+    record_log payment, response
+
     if response.success?
-      Payment.create(:source => payment, :amount => amount.abs * -1, :response_code => response.authorization, :state => 'completed')
+      Payment.create(:order => payment.order,
+                    :source => payment,
+                    :payment_method => payment.payment_method,
+                    :amount => amount.abs * -1,
+                    :response_code => response.authorization,
+                    :state => 'completed')
     else
       gateway_error(response)
     end
   rescue ActiveMerchant::ConnectionError => e
     gateway_error I18n.t(:unable_to_connect_to_gateway)
   end
+
+
 
 
   def actions
@@ -161,11 +184,17 @@ class Creditcard < ActiveRecord::Base
   # behavior of Spree is to disallow credit operations until the payment is at least 12 hours old.
   def can_credit?(payment)
     return false unless (Time.now - 12.hours) > payment.created_at
-    payment.state == "completed"
+    return false unless payment.state == "completed"
+    return false unless payment.order.payment_state == "credit_owed"
+    payment.credit_allowed > 0
   end
 
   def has_payment_profile?
     gateway_customer_profile_id.present?
+  end
+
+  def record_log(payment, response)
+    payment.log_entries.create(:details => response.to_yaml)
   end
 
   def gateway_error(error)
@@ -213,30 +242,5 @@ class Creditcard < ActiveRecord::Base
   def payment_gateway
     @payment_gateway ||= Gateway.current
   end
-
-  private
-
-    def has_transaction_of_types?(payment, *types)
-      (payment.txns.map(&:txn_type) & types).any?
-    end
-
-    def has_no_transaction_of_types?(payment, *types)
-      (payment.txns.map(&:txn_type) & types).none?
-    end
-
-    #RAILS 3 TODO
-    # # Override default behavior of Rails attr_readonly so that its never written to the database (not even on create)
-    # def attributes_with_quotes(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
-    #   attributes_with_quotes_default(include_primary_key, false, attribute_names)
-    # end
-
-    def remove_readonly_attributes(attributes)
-      if self.class.readonly_attributes.present?
-        attributes.delete_if { |key, value| self.class.readonly_attributes.include?(key.gsub(/\(.+/,"")) }
-      end
-      # extra logic for sanitizing the number and verification value based on preferences
-      attributes.delete_if { |key, value| key == "number" and !Spree::Config[:store_cc] }
-      attributes.delete_if { |key, value| key == "verification_value" and !Spree::Config[:store_cvv] }
-    end
 
 end
