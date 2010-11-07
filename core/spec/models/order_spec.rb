@@ -14,7 +14,7 @@ describe Order do
     end
 
     context "when associated with a registered user" do
-      let(:user) { mock_model(User, :email => "user@example.com") }
+      let(:user) { mock_model(User, :email => "user@registered.com") }
       before { order.user = user }
 
       it "should not remove the user" do
@@ -478,36 +478,6 @@ describe Order do
     end
     it "should restock inventory"
     it "should change shipment status (unless shipped)"
-  end
-
-  context "#shipped_units" do
-    let(:unit_1) { InventoryUnit.create(:variant => mock_model(Variant), :state => "shipped") }
-    let(:unit_2) { InventoryUnit.create(:variant => mock_model(Variant), :state => "shipped") }
-    let(:unit_3) { InventoryUnit.create(:variant => mock_model(Variant), :state => "sold") }
-
-    before do
-      order.stub(:inventory_units => [unit_1, unit_2, unit_1, unit_3])
-    end
-
-    it "should return shipped unit count grouped by variant" do
-      order.shipped_units.should == {unit_1.variant => 2, unit_2.variant => 1}
-    end
-
-  end
-
-  context "#returnable_units" do
-    let(:unit_1) { InventoryUnit.create(:variant => mock_model(Variant), :variant_id => 1, :state => "shipped") }
-    let(:unit_2) { InventoryUnit.create(:variant => mock_model(Variant), :variant_id => 2, :state => "returned") }
-    let(:unit_3) { InventoryUnit.create(:variant => mock_model(Variant), :variant_id => 3, :state => "sold") }
-
-    before do
-      order.stub(:inventory_units => [unit_1, unit_2, unit_1, unit_3])
-    end
-
-    it "should list all returnable units" do
-      order.returnable_units.should == { unit_1.variant => 2 }
-    end
-
   end
 
   context "with adjustments" do
