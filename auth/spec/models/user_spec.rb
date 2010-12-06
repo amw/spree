@@ -6,11 +6,6 @@ describe User do
   context "#create" do
     let(:user) { User.new(:email => "foo@bar.com", :password => "secret", :password_confirmation => "secret") }
 
-    it "should create a token when saving" do
-      user.save!
-      user.persistence_token.should_not be_nil
-    end
-
     before do
       User.delete_all
       Role.delete_all
@@ -26,6 +21,10 @@ describe User do
 
     it "should create a new user" do
       user.new_record?.should be_false
+    end
+
+    it "should create a user with an example.net email" do
+      user.email.should =~ /example.net/
     end
   end
 end

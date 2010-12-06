@@ -7,6 +7,7 @@ describe CheckoutController do
   before do
     order.stub :checkout_allowed? => true, :user => user, :new_record? => false
     controller.stub :current_order => order
+    controller.stub :current_user => nil
   end
 
 
@@ -161,12 +162,14 @@ describe CheckoutController do
     end
 
     it "should redirect to the checkout_path after saving" do
+      order.stub :update_attributes => true
       controller.stub :check_authorization
       put :update_registration, { :order => {:email => "jobs@railsdog.com"} }
       response.should redirect_to checkout_path
     end
 
     it "should check if the user is authorized for :edit" do
+      order.stub :update_attributes => true
       controller.should_receive(:authorize!).with(:edit, order)
       put :update_registration, { :order => {:email => "jobs@railsdog.com"} }
     end

@@ -67,20 +67,24 @@ class Admin::OrdersController < Admin::BaseController
 
   def collection
     params[:search] ||= {}
-    if !params[:search][:created_at_greater_than].blank?
-      params[:search][:created_at_greater_than] = Time.zone.parse(params[:search][:created_at_greater_than]).beginning_of_day rescue ""
+
+    if params[:search].present?
+      if params[:search].delete(:completed_at_not_null) == "1"
+        params[:search][:completed_at_not_null] = "1"
+      end
+    else
+      params[:search][:completed_at_not_null] = "1"
     end
 
-    if !params[:search][:created_at_less_than].blank?
-      params[:search][:created_at_less_than] = Time.zone.parse(params[:search][:created_at_less_than]).end_of_day rescue ""
+    if !params[:search][:completed_at_greater_than].blank?
+      params[:search][:completed_at_greater_than] = Time.zone.parse(params[:search][:completed_at_greater_than]).beginning_of_day rescue ""
     end
 
-    params[:search][:completed_at_not_null] ||= "1"
-    if params[:search].delete(:completed_at_not_null) == "1"
-      params[:search][:completed_at_not_null] = true
+    if !params[:search][:completed_at_less_than].blank?
+      params[:search][:completed_at_less_than] = Time.zone.parse(params[:search][:completed_at_less_than]).end_of_day rescue ""
     end
 
-    params[:search][:order] ||= "descend_by_created_at"
+    params[:search][:order] ||= "descend_by_completed_at"
     @search = Order.searchlogic(params[:search])
 
     # QUERY - get per_page from form ever???  maybe push into model
