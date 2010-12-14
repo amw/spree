@@ -1,5 +1,5 @@
 class Country < ActiveRecord::Base
-  has_many :states
+  has_many :states, :inverse_of => :country
   
   has_one     :zone_member, :as => :zoneable
   has_one     :zone,        :through => :zone_member

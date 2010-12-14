@@ -1,5 +1,5 @@
 class State < ActiveRecord::Base
-  belongs_to  :country
+  belongs_to  :country, :inverse_of => :states
   scope :order_by_name, order(:name)
 
   has_one     :zone_member, :as => :zoneable
