@@ -12,7 +12,7 @@ class Admin::OrdersController < Admin::BaseController
       if !@order.line_items.empty?
         unless @order.complete?
 
-          if params[:order].key?(:use_billing)
+          if params[:order].key?(:email)
             @order.shipping_method = @order.available_shipping_methods(:front_end).first
             @order.create_shipment!
             redirect_to edit_admin_order_shipment_path(@order, @order.shipment)
@@ -37,10 +37,11 @@ class Admin::OrdersController < Admin::BaseController
     # TODO - possible security check here but right now any admin can before any transition (and the state machine
     # itself will make sure transitions are not applied in the wrong state)
     event = params[:e]
-    Order.transaction do
-      @order.send("#{event}!")
+    if @order.send("#{event}")
+      flash.notice = t('order_updated')
+    else
+      flash[:error] = t('cannot_perform_operation')
     end
-    flash.notice = t('order_updated')
   rescue Spree::GatewayError => ge
     flash[:error] = "#{ge.message}"
   ensure

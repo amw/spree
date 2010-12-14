@@ -26,8 +26,11 @@ class Admin::ShipmentsController < Admin::BaseController
   destroy.success.wants.js { render_js_for_destroy }
 
   def fire
-    @shipment.send("#{params[:e]}!")
-    flash.notice = t('shipment_updated')
+    if @shipment.send("#{params[:e]}")
+      flash.notice = t('shipment_updated')
+    else
+      flash[:error] = t('cannot_perform_operation')
+    end
     redirect_to :back
   end
 
@@ -48,7 +51,7 @@ class Admin::ShipmentsController < Admin::BaseController
     @shipping_methods = ShippingMethod.all_available(@order, :back_end)
 
     @states = State.find_all_by_country_id(@selected_country_id, :order => 'name')
-    @countries = available_countries
+    @countries = Country.all
   end
 
   def edit_before # copy into instance variable before editing

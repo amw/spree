@@ -7,6 +7,16 @@ describe Order do
 
   before { Gateway.stub :current => gateway }
 
+  context "#products" do
+    it "should return ordered products" do
+      variant1 = mock_model(Variant, :product => "product1")
+      variant2 = mock_model(Variant, :product => "product2")
+      line_items = [mock_model(LineItem, :variant => variant1), mock_model(LineItem, :variant => variant2)]
+      order.stub(:line_items => line_items)
+      order.products.should == ['product1', 'product2']
+    end
+  end
+
   context "#save" do
     it "should create guest user (when no user assigned)" do
       order.save
@@ -14,7 +24,7 @@ describe Order do
     end
 
     context "when associated with a registered user" do
-      let(:user) { mock_model(User, :email => "user@registered.com") }
+      let(:user) { mock_model(User, :email => "user@registered.com", :anonymous? => false) }
       before { order.user = user }
 
       it "should not remove the user" do
@@ -34,7 +44,7 @@ describe Order do
       end
 
       it "should reject the automatic email for anonymous users" do
-        user.stub :email => "123456789@example.net"
+        user.stub :anonymous? => true
         order.save
         order.email.should be_blank
       end

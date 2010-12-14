@@ -347,10 +347,13 @@ class Order < ActiveRecord::Base
     bill_address.try(:lastname)
   end
 
+  def products
+    line_items.map{|li| li.variant.product}
+  end
 
   private
   def create_user
-    self.email = user.email if self.user and user.email !~ /example.net/
+    self.email = user.email if self.user and not user.anonymous?
     self.user ||= User.anonymous!
   end
 
