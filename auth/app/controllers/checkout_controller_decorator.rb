@@ -21,7 +21,7 @@ CheckoutController.class_eval do
 
   private
   def check_authorization
-    authorize!(:edit, current_order)
+    authorize!(:edit, current_order, session[:access_token])
   end
 
   # Introduces a registration step whenever the +registration_step+ preference is true.
@@ -36,7 +36,7 @@ CheckoutController.class_eval do
   # are redirected to the tokenized order url unless authenticated as a registered user.
   def completion_route
     return order_path(@order) if current_user
-    token_order_path(@order, @order.user.token)
+    token_order_path(@order, @order.token)
   end
 
 end

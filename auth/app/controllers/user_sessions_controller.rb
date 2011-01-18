@@ -3,7 +3,6 @@ class UserSessionsController < Devise::SessionsController
   helper :users, 'spree/base'
 
   include Spree::CurrentOrder
-  include Spree::AuthUser
 
   after_filter :associate_user, :only => :create
 
@@ -16,12 +15,12 @@ class UserSessionsController < Devise::SessionsController
   end
 
   def create
-    resource = warden.authenticate!(:scope => resource_name, :recall => "UserSessions#new")
+    authenticate_user!
 
     if user_signed_in?
       respond_to do |format|
         format.html {
-          flash[:notice] = t("logged_in_succesfully") unless session[:return_to]
+          flash[:notice] = t("logged_in_succesfully")
           redirect_back_or_default(products_path)
         }
         format.js {

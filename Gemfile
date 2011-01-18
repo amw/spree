@@ -15,7 +15,9 @@ group :test do
 end
 
 group :cucumber do
-  gem 'cucumber-rails', '~> 0.3.2'
+  gem 'cucumber-rails'
+  gem 'capybara'
+  gem 'launchy'
+  gem 'nokogiri'
   gem 'database_cleaner', '~> 0.5.2'
-  gem 'capybara', '~> 0.3.9', :require => false
 end

@@ -14,6 +14,10 @@ module NavigationHelpers
       new_user_session_path
     when /the sign up page/
       new_user_registration_path
+    when /the forgot password page/
+      new_user_password_path
+    when /the admin home page/
+      admin_path
 
     # Add more mappings here.
     # Here is an example that pulls values out of the Regexp:
