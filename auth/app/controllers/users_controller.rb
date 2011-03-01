@@ -22,6 +22,21 @@ class UsersController < Spree::BaseController
 
   update.wants.html { redirect_to account_url }
   update.flash { I18n.t("account_updated") }
+  update.failure.wants.html do
+    if params[:user][:bill_address_attributes].present?
+      render 'address'
+    else
+      render 'edit'
+    end
+  end
+
+  def address
+    @user ||= current_user
+    authorize! :update, @user
+
+    @user.bill_address ||= Address.new :country_id => Spree::Config[:default_country_id]
+    @user.ship_address ||= Address.new :country_id => Spree::Config[:default_country_id]
+  end
 
   private
   def object
