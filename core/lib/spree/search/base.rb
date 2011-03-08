@@ -2,13 +2,15 @@ module Spree::Search
   class Base
     attr_accessor :properties
 
-    def initialize(params)
+    def initialize(params, controller = nil)
       @properties = {}
+      @controller = controller
       prepare(params)
     end
 
     def retrieve_products
       base_scope = get_base_scope
+      base_scope = add_authorization_scope base_scope
       @products_scope = @product_group.apply_on(base_scope)
 
       curr_page = manage_pagination && keywords ? 1 : page
@@ -42,7 +44,12 @@ module Spree::Search
       base_scope = base_scope.on_hand unless Spree::Config[:show_zero_stock_products]
       base_scope
     end
-    
+
+    # can be overwritten by auth module to limit products access
+    def add_authorization_scope(base_scope)
+      base_scope
+    end
+
     # method should return new scope based on base_scope
     def get_products_conditions_for(base_scope, query)
       base_scope.like_any([:name, :description], query.split)
