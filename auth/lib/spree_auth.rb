@@ -2,6 +2,7 @@ require 'spree_core'
 require 'devise'
 require 'cancan'
 
+require 'spree_auth_hooks'
 require 'spree/auth/config'
 require 'spree/token_resource'
 
