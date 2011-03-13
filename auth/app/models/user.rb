@@ -4,6 +4,7 @@ class User < ActiveRecord::Base
          :rememberable, :trackable, :validatable, :encryptable, :encryptor => "authlogic_sha512"
 
   has_many :orders
+  has_many :creditcards
   has_and_belongs_to_many :roles
   belongs_to :ship_address, :foreign_key => "ship_address_id", :class_name => "Address"
   belongs_to :bill_address, :foreign_key => "bill_address_id", :class_name => "Address"
