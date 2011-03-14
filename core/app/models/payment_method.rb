@@ -51,4 +51,8 @@ class PaymentMethod < ActiveRecord::Base
     false
   end
 
+  def requires_source?
+    false
+  end
+
 end

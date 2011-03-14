@@ -44,5 +44,9 @@ class Gateway < PaymentMethod
   def method_type
     "gateway"
   end
-  
+
+  def requires_source?
+    true
+  end
+
 end
