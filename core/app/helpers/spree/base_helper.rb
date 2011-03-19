@@ -85,7 +85,7 @@ module Spree::BaseHelper
   end
 
   def available_countries
-    return Country.all unless zone = Zone.find_by_name(Spree::Config[:checkout_zone])
+    return Country.order_by_name unless zone = Zone.find_by_name(Spree::Config[:checkout_zone])
     zone.country_list
   end
   
