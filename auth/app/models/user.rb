@@ -19,6 +19,7 @@ class User < ActiveRecord::Base
   attr_accessible :email, :password, :password_confirmation, :remember_me, :persistence_token, :use_billing, :bill_address_attributes, :ship_address_attributes
 
   scope :admin, lambda { includes(:roles).where("roles.name" => "admin") }
+  scope :registered, where('users.email NOT LIKE "%@example.net"')
 
   before_validation :clone_billing_address, :if => "@use_billing"
   attr_accessor :use_billing
