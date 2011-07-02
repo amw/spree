@@ -76,7 +76,7 @@ class Payment < ActiveRecord::Base
   end
 
   def process!
-    return if processing?
+    return unless checkout?
 
     if !source
       raise "payment source is missing" if payment_method.requires_source?
