@@ -14,8 +14,8 @@ class Admin::PaymentsController < Admin::BaseController
         return
       end
 
-      @payment.process!
       if @order.completed?
+        @payment.process!
         set_flash :create
         redirect_to collection_path
       else
