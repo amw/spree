@@ -14,6 +14,10 @@ class Admin::OrdersController < Admin::BaseController
 
           if params[:order].key?(:email)
             @order.shipping_method = @order.available_shipping_methods(:front_end).first
+            if params[:guest_checkout] == 'false' && params[:user_id].present?
+              @order.user_id = params[:user_id]
+              @order.user true
+            end
             @order.save
             @order.create_shipment!
             redirect_to edit_admin_order_shipment_path(@order, @order.shipment)
