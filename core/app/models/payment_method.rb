@@ -35,6 +35,10 @@ class PaymentMethod < ActiveRecord::Base
     PaymentMethod.find(:first, :conditions => {:active => true, :environment => Rails.env})
   end
 
+  def self.all_available_allow_confirmation?
+    available('front_end').all? {|p| p.allows_confirmation? }
+  end
+
   def method_type
     type.demodulize.downcase
   end
@@ -45,6 +49,10 @@ class PaymentMethod < ActiveRecord::Base
 
   def self.find_with_destroyed *args
     self.with_exclusive_scope { find(*args) }
+  end
+
+  def allows_confirmation?
+    payment_profiles_supported?
   end
 
   def payment_profiles_supported?

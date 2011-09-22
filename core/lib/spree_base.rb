@@ -76,10 +76,6 @@ module SpreeBase
       @taxonomies.reject { |t| t.root.nil? }
     end
     
-    def current_gateway
-      @current_gateway ||= Gateway.current
-    end
-    
     #RAILS 3 TODO
     # # Load all models using STI to fix associations such as @order.credits giving no results and resulting in incorrect order totals
     # def touch_sti_subclasses
@@ -108,7 +104,6 @@ module SpreeBase
     receiver.send :helper_method, 'title'
     receiver.send :helper_method, 'title='
     receiver.send :helper_method, 'get_taxonomies'
-    receiver.send :helper_method, 'current_gateway'
     receiver.send :helper_method, 'current_order'
     receiver.send :include, SslRequirement
     receiver.send :include, Spree::CurrentOrder

@@ -63,7 +63,7 @@ class Creditcard < ActiveRecord::Base
 
   def authorize(amount, payment)
     # ActiveMerchant is configured to use cents so we need to multiply order total by 100
-    response = payment_gateway.authorize((amount * 100).round, self, gateway_options(payment))
+    response = gateway(payment).authorize((amount * 100).round, self, gateway_options(payment))
     record_log payment, response
 
     if response.success?
@@ -80,7 +80,7 @@ class Creditcard < ActiveRecord::Base
 
   def purchase(amount, payment)
     #combined Authorize and Capture that gets processed by the ActiveMerchant gateway as one single transaction.
-    response = payment_gateway.purchase((amount * 100).round, self, gateway_options(payment))
+    response = gateway(payment).purchase((amount * 100).round, self, gateway_options(payment))
     record_log payment, response
 
     if response.success?
@@ -97,13 +97,13 @@ class Creditcard < ActiveRecord::Base
 
   def capture(payment)
     return unless payment.pending?
-    if payment_gateway.payment_profiles_supported?
+    if gateway(payment).payment_profiles_supported?
       # Gateways supporting payment profiles will need access to creditcard object because this stores the payment profile information
       # so supply the authorization itself as well as the creditcard, rather than just the authorization code
-      response = payment_gateway.capture(payment, self, minimal_gateway_options(payment))
+      response = gateway(payment).capture(payment, self, minimal_gateway_options(payment))
     else
       # Standard ActiveMerchant capture usage
-      response = payment_gateway.capture((payment.amount * 100).round, payment.response_code, minimal_gateway_options(payment))
+      response = gateway(payment).capture((payment.amount * 100).round, payment.response_code, minimal_gateway_options(payment))
     end
 
     record_log payment, response
@@ -120,7 +120,7 @@ class Creditcard < ActiveRecord::Base
   end
 
   def void(payment)
-    response = payment_gateway.void(payment.response_code, self, minimal_gateway_options(payment))
+    response = gateway(payment).void(payment.response_code, self, minimal_gateway_options(payment))
     record_log payment, response
 
     if response.success?
@@ -136,10 +136,10 @@ class Creditcard < ActiveRecord::Base
   def credit(payment)
     amount = payment.credit_allowed >= payment.order.outstanding_balance.abs ? payment.order.outstanding_balance.abs : payment.credit_allowed.abs
 
-    if payment_gateway.payment_profiles_supported?
-      response = payment_gateway.credit((amount * 100).round, self, payment.response_code, minimal_gateway_options(payment))
+    if gateway(payment).payment_profiles_supported?
+      response = gateway(payment).credit((amount * 100).round, self, payment.response_code, minimal_gateway_options(payment))
     else
-      response = payment_gateway.credit((amount * 100).round, payment.response_code, minimal_gateway_options(payment))
+      response = gateway(payment).credit((amount * 100).round, payment.response_code, minimal_gateway_options(payment))
     end
 
     record_log payment, response
@@ -147,7 +147,7 @@ class Creditcard < ActiveRecord::Base
     if response.success?
       Payment.create(:order => payment.order,
                     :source => payment,
-                    :payment_method => payment.payment_method,
+                    :payment_method => gateway(payment),
                     :amount => amount.abs * -1,
                     :response_code => response.authorization,
                     :state => 'completed')
@@ -239,8 +239,7 @@ class Creditcard < ActiveRecord::Base
     self.class.type?(number)
   end
 
-  def payment_gateway
-    @payment_gateway ||= Gateway.current
+  def gateway payment
+    payments.first && payments.first.payment_method || payment.payment_method
   end
-
 end
