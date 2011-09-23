@@ -71,7 +71,8 @@ jQuery(function($){
   // Show fields for the selected payment method
   $("input[type='radio'][name='order[payments_attributes][][payment_method_id]']").click(function(){
     $('#payment-methods li').hide();
-    if(this.checked){ $('#payment_method_'+this.value).show(); }
+    var checked = $("input[type='radio'][name='order[payments_attributes][][payment_method_id]']:checked");
+    $('#payment_method_' + checked.val()).show();
   }).triggerHandler('click');
 
   $('form.edit_checkout').submit(function() {
