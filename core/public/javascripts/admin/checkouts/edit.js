@@ -53,6 +53,7 @@ jQuery(document).ready(function(){
     $('#guest_checkout_false').attr("checked", "checked");
     $('#guest_checkout_false').removeAttr("disabled");
     $('#order_email').val(data['email']);
+    $('#update_user_address_section').show();
 
     var addr = data['bill_address'];
     if(addr!=undefined){

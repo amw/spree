@@ -38,6 +38,15 @@
   <%= render :partial => "admin/shared/address_form", :locals => {:f => sa_form, :name => t('shipping_address'), :use_billing => true} %>
 <% end %>
 
+<p id="update_user_address_section"
+    <%== 'style="display: none;"' unless params[:update_user_address] %>
+>
+  <label>
+    <%= f.check_box :save_addresses_for_next_order %>
+    Update user's address
+  </label>
+</p>
+
 <p class="form-buttons">
   <%= button @order.cart? ? t('continue') : t('update') %>
 </p>

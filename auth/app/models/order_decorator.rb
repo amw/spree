@@ -1,13 +1,13 @@
 Order.class_eval do
   token_resource
 
-  after_save :save_user_addresses, :if => '@save_addresses_for_next_order'
+  after_save :save_user_addresses
   attr_accessor :save_addresses_for_next_order
   attr_accessible :save_addresses_for_next_order
 
   def save_user_addresses
     return unless save_addresses_for_next_order == "1"
-    return unless self.user
+    return unless self.user and !self.user.anonymous?
 
     self.user.bill_address ||= Address.new
     self.user.ship_address ||= Address.new
