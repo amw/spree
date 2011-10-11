@@ -64,7 +64,7 @@ class Admin::PaymentsController < Admin::BaseController
 
   def load_data
     load_object
-    @payment_methods = PaymentMethod.available(:back_end)
+    @payment_methods = @order.available_payment_methods :back_end
     if object and object.payment_method
       @payment_method = object.payment_method
     else

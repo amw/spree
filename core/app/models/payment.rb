@@ -129,12 +129,12 @@ class Payment < ActiveRecord::Base
     end
 
     def payment_profiles_supported?
-      source && source.respond_to?(:payment_gateway) && source.payment_gateway && source.payment_gateway.payment_profiles_supported?
+      source && source.respond_to?(:gateway) && source.gateway(self) && source.gateway(self).payment_profiles_supported?
     end
 
     def create_payment_profile
       return unless payment_profiles_supported? and source.number and !source.has_payment_profile?
-      source.payment_gateway.create_profile(self)
+      source.gateway(self).create_profile(self)
     rescue ActiveMerchant::ConnectionError => e
       gateway_error I18n.t(:unable_to_connect_to_gateway)
     end

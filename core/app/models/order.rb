@@ -326,8 +326,8 @@ class Order < ActiveRecord::Base
     payments.first
   end
 
-  def available_payment_methods
-    @available_payment_methods ||= PaymentMethod.available(:front_end)
+  def available_payment_methods where = :front_end
+    @available_payment_methods ||= PaymentMethod.available where
   end
 
   def payment_method
