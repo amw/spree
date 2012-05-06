@@ -10,10 +10,10 @@
       <td class="val-col" colspan="3"><%= f.text_field :email, :class => "fullwidth" %></td>
       <td class="lbl-col"><label><%= t('guest_checkout') %>:</label></td>
       <td class="val-col" colspan="3">
+        <% guest = @order.user.nil? || @order.user.anonymous? %>
         <% if @order.completed? %>
-          <%= @order.user.nil? ? "Yes" : "No" %>
+          <%= guest ? "Yes" : "No" %>
         <% else %>
-          <% guest = @order.user.nil? || @order.user.anonymous? %>
           <label class="sub">
             <%= radio_button_tag :guest_checkout, true, guest %>
             <%= t("yes") %>
