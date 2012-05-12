@@ -15,8 +15,9 @@ class Admin::OrdersController < Admin::BaseController
       if params[:guest_checkout] == 'false' && params[:user_id].present?
         @order.user_id = params[:user_id]
         @order.user true
-      elsif @order.user && !@order.user.anonymous?
-        @user.user = User.anonymous!
+      elsif params[:guest_checkout] == 'true' &&
+            @order.user && !@order.user.anonymous?
+        @order.user = User.anonymous!
       end
     end
 
