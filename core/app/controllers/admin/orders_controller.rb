@@ -38,6 +38,14 @@ class Admin::OrdersController < Admin::BaseController
         render :action => :new
       end
     end
+
+    failure.wants.html do
+      if params[:order] && params[:order][:email]
+        render :user
+      else
+        render :edit
+      end
+    end
   end
 
   def new
