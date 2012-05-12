@@ -10,6 +10,8 @@ class Admin::OrdersController < Admin::BaseController
     flash nil
 
     before do
+      return true if @order.completed?
+
       if params[:guest_checkout] == 'false' && params[:user_id].present?
         @order.user_id = params[:user_id]
         @order.user true
